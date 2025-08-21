@@ -1,0 +1,61 @@
+#!/usr/bin/env zsh
+
+# Modern ZSH Configuration - Modular Approach
+# Based on XDG Base Directory Specification and best practices
+
+# Ensure XDG directories exist
+[[ -z "$XDG_CONFIG_HOME" ]] && export XDG_CONFIG_HOME="$HOME/.config"
+[[ -z "$XDG_DATA_HOME" ]] && export XDG_DATA_HOME="$HOME/.local/share"
+[[ -z "$XDG_STATE_HOME" ]] && export XDG_STATE_HOME="$HOME/.local/state"
+[[ -z "$XDG_CACHE_HOME" ]] && export XDG_CACHE_HOME="$HOME/.cache"
+
+# Create XDG directories if they don't exist
+for dir in "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"; do
+    [[ ! -d "$dir" ]] && mkdir -p "$dir"
+done
+
+# Configuration directory
+ZSH_CONFIG_DIR="$XDG_CONFIG_HOME/zsh"
+
+# Core modules (order matters)
+ZSH_MODULES=(
+    environment
+    history
+    completion
+    aliases
+    functions
+    prompt
+)
+
+# Load core modules
+for module in "${ZSH_MODULES[@]}"; do
+    module_file="$ZSH_CONFIG_DIR/${module}.zsh"
+    [[ -f "$module_file" ]] && source "$module_file"
+done
+
+# Load OS-specific configuration
+case "$(uname -s)" in
+    Darwin*)  [[ -f "$ZSH_CONFIG_DIR/os/macos.zsh" ]] && source "$ZSH_CONFIG_DIR/os/macos.zsh" ;;
+    Linux*)   [[ -f "$ZSH_CONFIG_DIR/os/linux.zsh" ]] && source "$ZSH_CONFIG_DIR/os/linux.zsh" ;;
+    CYGWIN*|MINGW*) [[ -f "$ZSH_CONFIG_DIR/os/windows.zsh" ]] && source "$ZSH_CONFIG_DIR/os/windows.zsh" ;;
+esac
+
+# Load machine-specific configuration
+HOSTNAME_CONFIG="$ZSH_CONFIG_DIR/machines/$(hostname).zsh"
+[[ -f "$HOSTNAME_CONFIG" ]] && source "$HOSTNAME_CONFIG"
+
+# Load local configuration (not version controlled)
+LOCAL_CONFIG="$ZSH_CONFIG_DIR/local.zsh"
+[[ -f "$LOCAL_CONFIG" ]] && source "$LOCAL_CONFIG"
+
+# Load secrets for this machine (not version controlled)
+SECRETS_FILE="$XDG_CONFIG_HOME/secrets/$(hostname).env"
+[[ -f "$SECRETS_FILE" ]] && source "$SECRETS_FILE"
+
+# Initialize completion system (must be after compinit in completion.zsh)
+# This is handled in completion.zsh but we ensure it happens last
+autoload -Uz compinit
+compinit -d "$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
+
+# Clean up
+unset ZSH_CONFIG_DIR ZSH_MODULES module module_file HOSTNAME_CONFIG LOCAL_CONFIG SECRETS_FILE
