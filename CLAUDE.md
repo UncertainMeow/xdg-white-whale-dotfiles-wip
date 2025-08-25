@@ -31,6 +31,22 @@ This isn't just dotfiles management - it's **personal infrastructure as code**:
 - `./reddit_method_migrate.sh` - Implements the "zero top-level files" approach, migrating dotfiles to XDG locations
 - `./reddit_method_migrate.sh --dry-run` - Preview migration changes without applying them
 
+### Environment Launcher System
+- `./environment-launcher/install.sh` - Installs the dev-launcher system and dependencies
+- `dev-launcher` - Interactive container/VM launcher with fzf interface (requires fzf, yq)
+- Configuration in `environment-launcher/containers.yaml` - Defines available development environments
+- Includes homelab-focused containers: Homelab Command Center, Traefik, AI playground, network troubleshooting
+
+### Homelab Integration
+- `homelab-integration/README.md` - Complete guide for Docker/Podman, Tailscale, and GitLab setup
+- Integration patterns for reverse proxy, monitoring, and CI/CD
+- Scripts and configurations for self-hosted GitLab deployment
+
+### Secrets Management Scripts
+- `./snippets/step-01-install-tools.sh` - Installs SOPS and age tools for secrets management
+- `./snippets/step-02-generate-keys.sh` - Generates age keys for encryption
+- `./snippets/secrets-health-check.sh` - Validates secrets management setup
+
 ### Testing and Validation
 - Run audit script first to understand current state: `./audit_home.sh`
 - Always test migrations in dry-run mode before applying: `./reddit_method_migrate.sh --dry-run`
@@ -48,17 +64,28 @@ The project enforces XDG Base Directory Specification:
 
 ### Modular Shell Configuration
 Located in `new_dotfiles/config/zsh/`:
-- `zshrc` - Main configuration that sources modular components
-- `aliases.zsh`, `environment.zsh`, `functions.zsh` - Modular components
-- `os/macos.zsh` - OS-specific configurations
-- Follows XDG compliance with proper environment variable setup
+- `zshrc` - Main configuration that sources modular components using array-based loading
+- Core modules: `environment`, `history`, `completion`, `aliases`, `functions`, `prompt`
+- `os/macos.zsh` - OS-specific configurations (also supports `linux.zsh`, `windows.zsh`)
+- Machine-specific configs in `machines/$(hostname).zsh` (not version controlled)
+- Local overrides in `local.zsh` (not version controlled)
+- Secrets loaded from `$XDG_CONFIG_HOME/secrets/$(hostname).env`
+- Follows XDG compliance with proper environment variable setup and directory creation
 
-### Migration Strategy
+### Environment Launcher Architecture
+Located in `environment-launcher/`:
+- `dev-launcher` - Main script with fzf-based container selection interface
+- `containers.yaml` - Declarative container definitions with volume mounts and environment variables
+- `install.sh` - Setup script that copies files to XDG-compliant locations
+- `hammerspoon-setup.lua` - macOS automation integration (Hammerspoon hotkeys)
+- Supports multiple container runtimes and pre-configured development environments
+
+### Migration Strategy  
 The project implements the "Reddit Method" for achieving zero top-level dotfiles:
-1. Creates proper XDG directory structure
-2. Moves dotfiles to appropriate XDG locations
-3. Creates symlinks for backward compatibility
-4. Categorizes files into config/data/cache appropriately
+1. Creates proper XDG directory structure (`audit_home.sh` provides compliance scoring)
+2. Moves dotfiles to appropriate XDG locations with backup creation
+3. Creates symlinks for backward compatibility where needed
+4. Categorizes files into config/data/cache appropriately with detailed mappings
 
 ## File Categories and Migrations
 
@@ -86,6 +113,25 @@ The project implements the "Reddit Method" for achieving zero top-level dotfiles
 3. **Migration Phase**: Apply changes with full migration script
 4. **Validation Phase**: Re-run audit script to verify compliance
 
+## Dependencies and Requirements
+
+### Core Dependencies
+- **bash** - All migration and setup scripts are bash-based
+- **fzf** - Required for dev-launcher interactive menus  
+- **yq** - Required for parsing YAML container configurations
+- **Docker/Podman** - Required for environment launcher containers
+
+### Platform Support
+- **macOS** - Primary development platform, fully supported
+- **Linux** - Supported with OS-specific configurations in `new_dotfiles/config/zsh/os/linux.zsh`
+- **Windows** - Partial support via WSL/Cygwin
+
+### Installation Commands
+All scripts must be executed from project root directory. Key installation sequences:
+1. `./audit_home.sh` → `./reddit_method_migrate.sh --dry-run` → `./reddit_method_migrate.sh`
+2. `./environment-launcher/install.sh` (requires fzf and yq to be installed first)
+3. `./snippets/step-01-install-tools.sh` → `./snippets/step-02-generate-keys.sh`
+
 ## Important Constraints
 
 - Never run migration scripts without understanding the current home directory state
@@ -93,6 +139,7 @@ The project implements the "Reddit Method" for achieving zero top-level dotfiles
 - Test in dry-run mode first for any new migration logic
 - Respect security-sensitive directories (.ssh, .gnupg) that must remain in home
 - Maintain backward compatibility through symlinks where possible
+- All scripts assume execution from project root directory
 
 ## 🚀 Advanced Features Pipeline
 
@@ -123,6 +170,28 @@ New machine automation:
 - Zero-touch environment restoration
 
 ## 🎲 Current Status
+
+### ✅ Completed Components
+- **Migration Scripts**: `audit_home.sh` and `reddit_method_migrate.sh` fully functional
+- **XDG Shell Configuration**: Modular zsh setup with proper XDG compliance
+- **Environment Launcher**: Working container launcher with YAML-based configuration
+- **Secrets Management Foundation**: Installation scripts for SOPS/age tools
+
+### 🚧 In Development  
+- **Bootstrap Script**: Single-command machine setup (planned)
+- **Nix Home Manager Integration**: Declarative package management (researched)
+- **Multi-machine Sync**: Context-aware configurations (designed)
+- **1Password Integration**: Automated secret deployment (planned)
+
+### 📁 Project Structure
+```
+├── audit_home.sh & reddit_method_migrate.sh    # Working migration tools
+├── new_dotfiles/config/zsh/                    # Working modular shell config
+├── environment-launcher/                       # Working container launcher
+├── snippets/                                   # Working secrets setup scripts  
+├── ideas/                                      # Research and planning documents
+└── secrets-management/                         # Future implementation area
+```
 
 **Phase:** Foundation complete, ready for advanced features
 **Safety:** All work committed to git, user's existing dotfiles safe
