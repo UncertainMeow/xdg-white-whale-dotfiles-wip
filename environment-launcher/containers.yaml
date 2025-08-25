@@ -1,0 +1,98 @@
+containers:
+  python-dev:
+    name: "🐍 Python Development"
+    image: "python:3.11-slim"
+    volumes:
+      - "${PWD}:/workspace"
+      - "${HOME}/.config:/home/dev/.config:ro"
+    environment:
+      - "PYTHONPATH=/workspace"
+    command: "bash"
+    
+  node-dev:
+    name: "🟢 Node.js Development" 
+    image: "node:20-alpine"
+    volumes:
+      - "${PWD}:/workspace"
+    command: "sh"
+    
+  rust-dev:
+    name: "🦀 Rust Development"
+    image: "rust:latest"
+    volumes:
+      - "${PWD}:/workspace"
+      - "${HOME}/.cargo:/usr/local/cargo"
+    command: "bash"
+    
+  test-env:
+    name: "🧪 Clean Test Environment"
+    image: "ubuntu:22.04" 
+    volumes:
+      - "${PWD}:/workspace"
+    command: "bash"
+    
+  alpine-minimal:
+    name: "🏔️ Alpine Minimal"
+    image: "alpine:latest"
+    volumes:
+      - "${PWD}:/workspace"
+    command: "sh"
+    
+  experimental:
+    name: "⚗️ Experimental Playground"
+    image: "debian:bookworm-slim"
+    volumes:
+      - "${PWD}:/workspace"
+      - "/tmp:/host-tmp"
+    environment:
+      - "TERM=xterm-256color"
+    command: "bash"
+    
+  homelab-toolkit:
+    name: "🏠 Homelab Command Center"
+    image: "ubuntu:22.04"
+    volumes:
+      - "${PWD}:/workspace"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - "DEBIAN_FRONTEND=noninteractive"
+      - "TERM=xterm-256color"
+    command: "bash -c 'apt update && apt install -y curl wget git docker.io portainer-ce-agent tailscale net-tools dnsutils && echo \"🏠 Homelab toolkit ready!\" && bash'"
+    
+  traefik-playground:
+    name: "🌐 Reverse Proxy Lab (Traefik)"
+    image: "traefik:v3.0"
+    ports:
+      - "8080:8080"
+      - "80:80"
+    volumes:
+      - "${PWD}:/workspace"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: "sh"
+    
+  ai-playground:
+    name: "🤖 AI/ML Playground"
+    image: "python:3.11"
+    volumes:
+      - "${PWD}:/workspace"
+    environment:
+      - "PYTHONPATH=/workspace"
+    command: "bash -c 'pip install jupyter pandas numpy matplotlib ollama && echo \"🤖 AI playground ready!\" && bash'"
+    
+  web-dev-stack:
+    name: "🌍 Web Dev Stack (NGINX + PHP)"
+    image: "webdevops/php-nginx:8.2"
+    ports:
+      - "8000:80"
+    volumes:
+      - "${PWD}:/app"
+    environment:
+      - "WEB_DOCUMENT_ROOT=/app/public"
+    command: "bash"
+    
+  network-troubleshoot:
+    name: "🔧 Network Troubleshooting Tools"
+    image: "nicolaka/netshoot"
+    volumes:
+      - "${PWD}:/workspace"
+    command: "bash"
